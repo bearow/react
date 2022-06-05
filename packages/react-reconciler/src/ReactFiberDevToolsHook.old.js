@@ -45,6 +45,7 @@ import {setSuppressWarning} from 'shared/consoleWithStackDev';
 import {disableLogs, reenableLogs} from 'shared/ConsolePatchingDev';
 
 declare var __REACT_DEVTOOLS_GLOBAL_HOOK__: Object | void;
+declare var __DISABLE_REACT_DEVTOOLS_GLOBAL_HOOK__: boolean;
 
 let rendererID = null;
 let injectedHook = null;
@@ -55,17 +56,20 @@ export const isDevToolsPresent =
   typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined';
 
 export function injectInternals(internals: Object): boolean {
+  if (
+    typeof __DISABLE_REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined' &&
+    __DISABLE_REACT_DEVTOOLS_GLOBAL_HOOK__
+  ) {
+    // It can be set to opt out
+    // of DevTools integration and associated warnings and logs.
+    // https://github.com/facebook/react/issues/24283
+    return true;
+  }
   if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === 'undefined') {
     // No DevTools
     return false;
   }
   const hook = __REACT_DEVTOOLS_GLOBAL_HOOK__;
-  if (hook.isDisabled) {
-    // This isn't a real property on the hook, but it can be set to opt out
-    // of DevTools integration and associated warnings and logs.
-    // https://github.com/facebook/react/issues/3877
-    return true;
-  }
   if (!hook.supportsFiber) {
     if (__DEV__) {
       console.error(

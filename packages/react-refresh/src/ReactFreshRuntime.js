@@ -446,6 +446,21 @@ export function findAffectedHostInstances(
 
 export function injectIntoGlobalHook(globalObject: any): void {
   if (__DEV__) {
+    if (globalObject.__DISABLE_REACT_DEVTOOLS_GLOBAL_HOOK__) {
+      // It can be set to opt out
+      // of DevTools integration and associated warnings and logs.
+      // Using console['warn'] to evade Babel and ESLint
+      console['warn'](
+        'Something has shimmed the React DevTools global hook (__REACT_DEVTOOLS_GLOBAL_HOOK__). ' +
+          'Fast Refresh is not compatible with this shim and will be disabled.',
+      );
+      console['warn'](
+        '__DISABLE_REACT_DEVTOOLS_GLOBAL_HOOK__ is set to: ' +
+          globalObject.__DISABLE_REACT_DEVTOOLS_GLOBAL_HOOK__,
+      );
+      return;
+    }
+
     // For React Native, the global hook will be set up by require('react-devtools-core').
     // That code will run before us. So we need to monkeypatch functions on existing hook.
 
@@ -476,17 +491,6 @@ export function injectIntoGlobalHook(globalObject: any): void {
         ) {},
         onCommitFiberUnmount() {},
       };
-    }
-
-    if (hook.isDisabled) {
-      // This isn't a real property on the hook, but it can be set to opt out
-      // of DevTools integration and associated warnings and logs.
-      // Using console['warn'] to evade Babel and ESLint
-      console['warn'](
-        'Something has shimmed the React DevTools global hook (__REACT_DEVTOOLS_GLOBAL_HOOK__). ' +
-          'Fast Refresh is not compatible with this shim and will be disabled.',
-      );
-      return;
     }
 
     // Here, we just want to get a reference to scheduleRefresh.
